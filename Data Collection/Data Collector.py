@@ -61,9 +61,9 @@ def on_key_press(event):
         timestamp = time.strftime('%Y%m%d_%H%M%S')
 
         # Save the data to a text file in the "True" directory
-        directory = "True"
+        directory = "Data Collection/True"
         file_path = os.path.join(directory, f'data_{timestamp}.txt')
-        with open(file_path, 'w') as f:
+        with open(file_path, 'x') as f:
             for d in data:
                 f.write(f'{d:.8f}\n')
 
@@ -73,9 +73,9 @@ def on_key_press(event):
         timestamp = time.strftime('%Y%m%d_%H%M%S')
 
         # Save the data to a text file in the "False" directory
-        directory = "False"
+        directory = "Data Collection/False"
         file_path = os.path.join(directory, f'data_{timestamp}.txt')
-        with open(file_path, 'w') as f:
+        with open(file_path, 'x') as f:
             for d in data:
                 f.write(f'{d:.8f}\n')
 
