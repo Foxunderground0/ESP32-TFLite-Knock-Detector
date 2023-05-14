@@ -36,7 +36,7 @@ def plot_data():
     plt.title('Serial Data Plot')
 
     # Set the y-axis limits
-    # plt.ylim([0.2, 1.8])
+    plt.ylim([0.2, 1.8])
 
     # Show the plot
     plt.show(block=False)
