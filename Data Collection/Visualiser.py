@@ -1,9 +1,10 @@
 import os
 import glob
+import math
 import matplotlib.pyplot as plt
 
 # Set the number of plots per page
-plots_per_page = 9
+plots_per_page = 16
 
 # Get a list of all the data files in the True directory
 true_files = glob.glob('Data Collection/Data/Truea/*.txt')
@@ -30,7 +31,8 @@ def plot_file(filename):
     # Set the axis labels and title
     plt.xlabel('Sample')
     plt.ylabel('Value')
-    plt.title(filename)
+    plt.title(os.path.basename(os.path.dirname(filename)) +
+              '/' + os.path.basename(filename))
 
     # Set the y-axis limits
     plt.ylim([0.2, 1.8])
@@ -47,10 +49,30 @@ def show_plots(page_num):
     end_index = min(start_index + plots_per_page, len(all_files))
     filenames = all_files[start_index:end_index]
 
+    # Set up the subplot layout based on the number of plots per page
+    rows = int(math.ceil(plots_per_page / 4))
+    cols = min(4, plots_per_page)
+
     # Plot each file on the page
     for i, filename in enumerate(filenames):
-        plt.subplot(3, 3, i + 1)
+        ax = plt.subplot(rows, cols, i + 1)
         plot_file(filename)
+
+        # Set the axis labels and title
+        plt.xlabel('Sample')
+        plt.ylabel('Value')
+        plt.title('/'.join(filename.split('/')[-2:]))
+
+        # Set the y-axis limits
+        plt.ylim([0.2, 1.8])
+
+    # Show the plot
+    plt.tight_layout()
+    plt.show(block=False)
+
+    # Adjust the spacing between the subplots
+    plt.subplots_adjust(left=0.05, right=0.95, bottom=0.05,
+                        top=0.95, wspace=0.2, hspace=0.2)
 
     # Show the plot
     plt.show(block=False)

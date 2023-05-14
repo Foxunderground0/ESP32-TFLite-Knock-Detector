@@ -1,1 +1,5 @@
 Data Collection/Data/*
+Data Collection/False
+Train/model
+Train/pruned_model
+Train/logs
