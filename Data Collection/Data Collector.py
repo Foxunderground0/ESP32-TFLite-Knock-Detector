@@ -36,7 +36,7 @@ def plot_data():
     plt.title('Serial Data Plot')
 
     # Set the y-axis limits
-    plt.ylim([0.2, 1.8])
+    # plt.ylim([0.2, 1.8])
 
     # Show the plot
     plt.show(block=False)
@@ -61,7 +61,7 @@ def on_key_press(event):
         timestamp = time.strftime('%Y%m%d_%H%M%S')
 
         # Save the data to a text file in the "True" directory
-        directory = "Data Collection/True"
+        directory = "Data Collection/Data/True"
         file_path = os.path.join(directory, f'data_{timestamp}.txt')
         with open(file_path, 'x') as f:
             for d in data:
@@ -73,7 +73,7 @@ def on_key_press(event):
         timestamp = time.strftime('%Y%m%d_%H%M%S')
 
         # Save the data to a text file in the "False" directory
-        directory = "Data Collection/False"
+        directory = "Data Collection/Data/False"
         file_path = os.path.join(directory, f'data_{timestamp}.txt')
         with open(file_path, 'x') as f:
             for d in data:
@@ -89,5 +89,28 @@ plot_data()
 # Show the plot and wait for key presses
 plt.show()
 
+
+'''
+# Plot the initial data
+plot_data()
+
+
+# Show the plot and wait for key presses
+plt.show(block=False)
+
+while 1:
+    plt.clf()
+    plot_data()
+
+    timestamp = time.strftime('%Y%m%d_%H%M%S')
+
+    # Save the data to a text file in the "False" directory
+    directory = "Data Collection/Data/False"
+    file_path = os.path.join(directory, f'data_continuous_{timestamp}.txt')
+    with open(file_path, 'x') as f:
+        for d in data:
+            f.write(f'{d:.8f}\n')
+
+'''
 # Close the serial port
 ser.close()
