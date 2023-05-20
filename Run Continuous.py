@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 import os
 import threading
 from matplotlib import animation
+from scipy.interpolate import interp1d
 
 # Open the serial port at 2000000 baud rate
 ser = serial.Serial('COM4', 2000000)
@@ -30,7 +31,7 @@ global data
 global accuracyArray
 accuracyArray = np.array([])
 
-data = np.array([], dtype=np.float32)
+data = np.array(np.zeros(1000), dtype=np.float32)
 
 pruned_model = tf.keras.models.load_model('Train/pruned_model')
 pruned_model.compile(loss=losses.BinaryFocalCrossentropy(),
@@ -65,7 +66,7 @@ def plot_data():
 
     # Plot the last 1000 elements of the data array
     plt.subplot(2, 1, 2)
-    plt.plot(data[-1000:])
+    plt.plot(upsampled_array)
     plt.xlabel('Sample')
     plt.ylabel('Value')
     plt.title('Last 1000 Elements')
@@ -96,9 +97,19 @@ if __name__ == "__main__":
     plt.ion()
 
     while 1:
-        dataa = data[-1000:]
+        dataa = data[-588:]
         # print(len(data))
 
+        original_array = dataa  # Replace with your original array
+
+        # Define the old and new indices
+        old_indices = np.arange(len(original_array))
+        new_indices = np.linspace(0, len(original_array) - 1, 1000)
+
+        # Perform cubic interpolation
+        f = interp1d(old_indices, original_array, kind='cubic')
+        upsampled_array = f(new_indices)
+        dataa = upsampled_array
         dataa = np.expand_dims(dataa, axis=-1)
         dataa = np.expand_dims(dataa, axis=0)
 
