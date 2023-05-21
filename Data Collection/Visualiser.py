@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 plots_per_page = 16
 
 # Get a list of all the data files in the True directory
-true_files = glob.glob('Data Collection/Data/Truea/*.txt')
+true_files = glob.glob(r'Data Collection/Data/New Data/True/*.txt')
 
 # Get a list of all the data files in the False directory
-false_files = glob.glob('Data Collection/Data/False/*.txt')
+false_files = glob.glob(r'Data Collection/Data/New Data/False/*.txt')
 
 # Combine the true and false files into one list
 all_files = true_files + false_files
