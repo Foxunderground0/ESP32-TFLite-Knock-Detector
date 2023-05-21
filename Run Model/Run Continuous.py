@@ -33,7 +33,7 @@ accuracyArray = np.array([])
 
 data = np.array(np.zeros(1000), dtype=np.float32)
 
-pruned_model = tf.keras.models.load_model('Train/pruned_model')
+pruned_model = tf.keras.models.load_model('Train/pruned_model.h5')
 pruned_model.compile(loss=losses.BinaryFocalCrossentropy(),
                      metrics=[metrics.BinaryAccuracy()])
 
