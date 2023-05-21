@@ -24,6 +24,8 @@ The ESP32 Knock Detector project aims to create a self-contained system using an
 * ### Model Quantization
   To prepare the model for deployment on the ESP32 WROVER microcontroller, quantization is applied. Quantization converts the model to use 8-bit integer weights, reducing the memory requirements and improving inference speed on resource-constrained devices. The quantized model further reduces the model size to 182 KB while maintaining reasonable accuracy.
 
+!(https://imgur.com/HN85pRb)
+
 * ### ESP32 Integration
   The next step of the project involves integrating the pruned and quantized model with the ESP32 WROVER microcontroller. Once the microcontroller arrives, it will be programmed to load the model and process accelerometer data in real-time. When the model detects two consecutive knocks, it will trigger a specific action, such as turning on a relay to control a desk lamp or other devices.
 
