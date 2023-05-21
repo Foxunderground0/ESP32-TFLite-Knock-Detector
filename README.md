@@ -17,7 +17,7 @@ The ESP32 Knock Detector project aims to create a self-contained system using an
     To verify the collected data and identify any mislabeled samples, another Python script is used. This script displays nine data files simultaneously, allowing for quick visualization and inspection. This visual inspection helps ensure the accuracy of the labeling process and reduces the chance of false positives.
 
     <video width="100%" controls>
-    <source src="Immages/Visualiser.mp4"   type="video/mp4">
+    <source src="Immages\Visualiser.mp4"   type="video/mp4">
     Your browser does not support the video tag.
     </video>
 
@@ -36,7 +36,7 @@ The ESP32 Knock Detector project aims to create a self-contained system using an
     To prepare the model for deployment on the ESP32 WROVER microcontroller, quantization is applied. Quantization converts the model to use 8-bit integer weights, reducing the memory requirements and improving inference speed on resource-constrained devices. The quantized model further reduces the model size to 182 KB while maintaining reasonable accuracy.
 
     <video width="100%" controls>
-    <source src="Immages/Prediction.mp4"   type="video/mp4">
+    <source src="Immages\Prediction.mp4"   type="video/mp4">
     Your browser does not support the video tag.
     </video>
 
