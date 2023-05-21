@@ -97,6 +97,7 @@ if __name__ == "__main__":
     plt.ion()
 
     while 1:
+        # Upscale the Data
         dataa = data[-588:]
         # print(len(data))
 
