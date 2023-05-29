@@ -4,9 +4,9 @@
 #include "esp_log.h"
 #include "driver/gpio.h"
 #include "esp32/rom/gpio.h"
+#include "driver/i2c.h"
 
-
-#define ONBOARD_LED GPIO_NUM_21
+#define ONBOARD_LED  GPIO_NUM_21
 
 void app_main(void) {
     char* rasl = pcTaskGetName(NULL);
@@ -17,9 +17,8 @@ void app_main(void) {
 
     while (1) {
         gpio_set_level(ONBOARD_LED, 1);
-        vTaskDelay(100);
+        vTaskDelay(2);
         gpio_set_level(ONBOARD_LED, 0);
-        vTaskDelay(100);
+        vTaskDelay(2);
     }
 }
-
