@@ -1,8 +1,4 @@
 Data Collection/Data/*
 Data Collection/False
-Train/old
-Train/model
-Train/pruned_model
-Train/logs
-Train copy
 .vscode/
+ESP32/build
