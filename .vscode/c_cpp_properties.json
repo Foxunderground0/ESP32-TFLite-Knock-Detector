@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/home/fox/esp-idf/components/**",
+                "/home/fox/esp-idf/components/**",
+                "/home/fox/esp-idf/components/**",
+                "/home/fox/esp-idf/components/**",
+                "/home/fox/esp-idf/components/hal/include/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-clang-x64"
+        }
+    ],
+    "version": 4
+}
