@@ -5,6 +5,8 @@
 #include "driver/gpio.h"
 #include "esp32/rom/gpio.h"
 #include "esp_timer.h"
+#include "driver/gptimer.h"
+#include "esp_log.h"
 
 #define I2C_MASTER_SCL_IO GPIO_NUM_22    // GPIO number for I2C master clock
 #define I2C_MASTER_SDA_IO GPIO_NUM_21    // GPIO number for I2C master data
@@ -12,9 +14,20 @@
 #define MPU6050_ADDR 0x68       // I2C address of the MPU-6050
 #define ONBOARD_LED  GPIO_NUM_0
 
+bool led_state = false;
+bool sample_ready = false;
+
+static const char* TAG = "main_task";
+
 #define SAMPLES_COUNT 2000
 float buffer[SAMPLES_COUNT]; //Circular Buffer
 uint16_t buffer_head = 0;
+
+#define INTERRUPT_FREQ 1700
+#define TIMER_DIVIDER (TIMER_BASE_CLK / INTERRUPT_FREQ)
+
+#define TIMER_GROUP TIMER_GROUP_0
+#define TIMER_NUM TIMER_0
 
 void i2c_master_init() {
     i2c_config_t conf;
@@ -23,7 +36,7 @@ void i2c_master_init() {
     conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
     conf.scl_io_num = I2C_MASTER_SCL_IO;
     conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
-    conf.master.clk_speed = 100000; // Set I2C master clock frequency
+    conf.master.clk_speed = 500000; // Set I2C master clock frequency
     conf.clk_flags = 0;
 
     i2c_param_config(I2C_MASTER_NUM, &conf);
@@ -59,6 +72,14 @@ void MPU_write(uint8_t reg, uint8_t data) {
     i2c_cmd_link_delete(cmd);
 }
 
+// Interrupt service routine (ISR)
+void IRAM_ATTR timer_isr(void* arg)
+{
+    sample_ready = true;
+    gpio_set_level(ONBOARD_LED, led_state);
+    led_state = !led_state;
+}
+
 void app_main() {
     i2c_master_init();
 
@@ -66,16 +87,52 @@ void app_main() {
 
     gpio_pad_select_gpio(ONBOARD_LED);
     gpio_set_direction(ONBOARD_LED, GPIO_MODE_OUTPUT);
+    gpio_set_level(ONBOARD_LED, led_state);
+    led_state = !led_state;
+
+    ESP_LOGI(TAG, "Create timer handle");
+    gptimer_handle_t gptimer = NULL;
+    gptimer_config_t timer_config = {
+        .clk_src = GPTIMER_CLK_SRC_DEFAULT,
+        .direction = GPTIMER_COUNT_UP,
+        .resolution_hz = 20000000, // 10MHz, 1 tick=1us
+    };
+    ESP_ERROR_CHECK(gptimer_new_timer(&timer_config, &gptimer));
+
+    gptimer_event_callbacks_t cbs = {
+        .on_alarm = timer_isr,
+    };
+
+    ESP_ERROR_CHECK(gptimer_register_event_callbacks(gptimer, &cbs, NULL));
+    ESP_LOGI(TAG, "Enable timer");
+    ESP_ERROR_CHECK(gptimer_enable(gptimer));
+    ESP_LOGI(TAG, "Start timer, stop it at alarm event");
+
+    gptimer_alarm_config_t alarm_config1 = {
+        .alarm_count = 11764, // 1700 times a seccond
+        .flags.auto_reload_on_alarm = true,
+        .reload_count = 0,
+    };
+
+    ESP_ERROR_CHECK(gptimer_set_alarm_action(gptimer, &alarm_config1));
+    ESP_ERROR_CHECK(gptimer_start(gptimer));
+
 
     uint64_t microseconds1 = esp_timer_get_time();
-    while (buffer_head <= 1000) {
-        uint8_t* pointer = MPU_read(0x3f, 2);
-        buffer[buffer_head] = (float)((uint16_t)(pointer[0] << 8) | (pointer[1]));
-        buffer_head++;
-        //printf("Val: %f\n", (float)accel / 16384.0);
-        free(pointer);
+
+    while (buffer_head < 1700) {
+        if (sample_ready) {
+            uint8_t* data_pointer = MPU_read(0x3f, 2);
+            buffer[buffer_head] = (float)((uint16_t)(data_pointer[0] << 8) | (data_pointer[1]));
+            buffer_head++;
+            //printf("Timer triggred");
+            free(data_pointer);
+            sample_ready = false;
+        }
     }
+
     uint64_t microseconds2 = esp_timer_get_time();
     uint64_t diff = microseconds2 - microseconds1;
+
     printf("Time in microseconds: %lld, head at: %d\n", diff, buffer_head);
 }
