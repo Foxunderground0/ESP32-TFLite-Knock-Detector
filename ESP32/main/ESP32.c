@@ -73,8 +73,7 @@ void MPU_write(uint8_t reg, uint8_t data) {
 }
 
 // Interrupt service routine (ISR)
-void IRAM_ATTR timer_isr(void* arg)
-{
+void IRAM_ATTR timer_isr(void* arg) {
     sample_ready = true;
     gpio_set_level(ONBOARD_LED, led_state);
     led_state = !led_state;
