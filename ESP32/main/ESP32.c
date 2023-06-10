@@ -7,6 +7,7 @@
 #include "esp_timer.h"
 #include "driver/gptimer.h"
 #include "esp_log.h"
+#include "/home/fox/tflite-micro-esp-examples/components/tflite-lib/tensorflow/lite/version.h"
 
 #define I2C_MASTER_SCL_IO GPIO_NUM_22    // GPIO number for I2C master clock
 #define I2C_MASTER_SDA_IO GPIO_NUM_21    // GPIO number for I2C master data

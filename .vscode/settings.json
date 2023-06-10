@@ -10,6 +10,8 @@
         "core.h": "c",
         "hal.h": "c",
         "core-isa.h": "c",
-        "core-matmap.h": "c"
+        "core-matmap.h": "c",
+        "esp_log.h": "c",
+        "micro_interpreter.h": "c"
     }
 }
