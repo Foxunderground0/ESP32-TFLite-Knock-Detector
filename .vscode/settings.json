@@ -12,6 +12,8 @@
         "core-isa.h": "c",
         "core-matmap.h": "c",
         "esp_log.h": "c",
-        "micro_interpreter.h": "c"
-    }
+        "micro_interpreter.h": "c",
+        "stdio.h": "c"
+    },
+    "C_Cpp.intelliSenseEngineFallback": "disabled"
 }

@@ -4,11 +4,10 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
+                "/home/fox/tflite-micro-esp-examples/components/tflite-lib/third_party/flatbuffers/include/*",
                 "/home/fox/esp-idf/components/**",
-                "/home/fox/esp-idf/components/**",
-                "/home/fox/esp-idf/components/**",
-                "/home/fox/esp-idf/components/**",
-                "/home/fox/esp-idf/components/hal/include/**"
+                "/home/fox/esp-idf/components/hal/include/**",
+                "/home/fox/tflite-micro-esp-examples/components/tflite-lib/**",
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
