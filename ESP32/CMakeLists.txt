@@ -8,5 +8,16 @@ cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# list(APPEND CMAKE_PREFIX_PATH "/home/fox/tflite-micro-esp-examples/components/tflite-lib/third_party/flatbuffers/include/")
+
+#include_directories("/home/fox/tflite-micro-esp-examples/components/tflite-lib/third_party/flatbuffers/include/")
+#include_directories("/home/fox/tflite-micro-esp-examples/components/tflite-lib/tensorflow/lite/c/")
+#include_directories("/home/fox/tflite-micro-esp-examples/components/tflite-lib/tensorflow/lite/core/c/")
+#include_directories("/home/fox/tflite-micro-esp-examples/components/tflite-lib/")
+#include_directories("/home/fox/tflite-micro-esp-examples/components/tflite-lib/tensorflow/")
+
+set(EXTRA_COMPONENT_DIRS $ENV{HOME}/tflite-micro-esp-examples/components/)
+
+#set(EXTRA_COMPONENT_DIRS components)
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(ESP32)

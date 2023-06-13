@@ -7,7 +7,7 @@
 #include "esp_timer.h"
 #include "driver/gptimer.h"
 #include "esp_log.h"
-#include "/home/fox/tflite-micro-esp-examples/components/tflite-lib/tensorflow/lite/micro/micro_interpreter.h"
+#include "tensorflow/lite/micro/micro_interpreter.h"
 
 #define I2C_MASTER_SCL_IO GPIO_NUM_22    // GPIO number for I2C master clock
 #define I2C_MASTER_SDA_IO GPIO_NUM_21    // GPIO number for I2C master data
@@ -42,7 +42,7 @@ void i2c_master_init() {
 
     i2c_param_config(I2C_MASTER_NUM, &conf);
     i2c_driver_install(I2C_MASTER_NUM, conf.mode, 0, 0, 0);
-}
+};
 
 uint8_t* MPU_read(uint8_t reg, uint8_t number_of_bytes) {
     uint8_t* data = (uint8_t*)malloc(number_of_bytes);
@@ -60,7 +60,7 @@ uint8_t* MPU_read(uint8_t reg, uint8_t number_of_bytes) {
     i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_PERIOD_MS); // Filling in the missing part
     i2c_cmd_link_delete(cmd);
     return data;
-}
+};
 
 void MPU_write(uint8_t reg, uint8_t data) {
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
@@ -71,16 +71,17 @@ void MPU_write(uint8_t reg, uint8_t data) {
     i2c_master_stop(cmd);
     i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
-}
+};
 
 // Interrupt service routine (ISR)
-void IRAM_ATTR timer_isr(void* arg) {
+bool IRAM_ATTR timer_isr(gptimer_t* gptimer, const gptimer_alarm_event_data_t* event_data, void* arg) {
     sample_ready = true;
     gpio_set_level(ONBOARD_LED, led_state);
     led_state = !led_state;
+    return true;
 }
 
-void app_main() {
+extern "C" void app_main() {
     i2c_master_init();
 
     MPU_write(0x6b, 0x00);
@@ -92,11 +93,14 @@ void app_main() {
 
     ESP_LOGI(TAG, "Create timer handle");
     gptimer_handle_t gptimer = NULL;
+
     gptimer_config_t timer_config = {
-        .clk_src = GPTIMER_CLK_SRC_DEFAULT,
-        .direction = GPTIMER_COUNT_UP,
-        .resolution_hz = 20000000, // 10MHz, 1 tick=1us
+    .clk_src = GPTIMER_CLK_SRC_DEFAULT,
+    .direction = GPTIMER_COUNT_UP,
+    .resolution_hz = 20000000, // 10MHz, 1 tick=1us
+    .flags = {0}
     };
+
     ESP_ERROR_CHECK(gptimer_new_timer(&timer_config, &gptimer));
 
     gptimer_event_callbacks_t cbs = {
@@ -109,14 +113,15 @@ void app_main() {
     ESP_LOGI(TAG, "Start timer, stop it at alarm event");
 
     gptimer_alarm_config_t alarm_config1 = {
-        .alarm_count = 11764, // 1700 times a seccond
-        .flags.auto_reload_on_alarm = true,
+        .alarm_count = 11764,// 1700 times a second
         .reload_count = 0,
+        .flags = {
+            .auto_reload_on_alarm = true
+        }
     };
 
     ESP_ERROR_CHECK(gptimer_set_alarm_action(gptimer, &alarm_config1));
     ESP_ERROR_CHECK(gptimer_start(gptimer));
-
 
     uint64_t microseconds1 = esp_timer_get_time();
 
@@ -135,4 +140,4 @@ void app_main() {
     uint64_t diff = microseconds2 - microseconds1;
 
     printf("Time in microseconds: %lld, head at: %d\n", diff, buffer_head);
-}
+};
