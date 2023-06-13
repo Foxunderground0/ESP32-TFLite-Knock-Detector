@@ -8,6 +8,9 @@
 #include "driver/gptimer.h"
 #include "esp_log.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
+#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
+#include "tensorflow/lite/micro/micro_interpreter.h"
+#include "tensorflow/lite/schema/schema_generated.h"
 
 #define I2C_MASTER_SCL_IO GPIO_NUM_22    // GPIO number for I2C master clock
 #define I2C_MASTER_SDA_IO GPIO_NUM_21    // GPIO number for I2C master data
