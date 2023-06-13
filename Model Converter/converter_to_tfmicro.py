@@ -1,12 +1,10 @@
-import tensorflow as tf
+import subprocess
 
-# Step 1: Convert the TFLite model to TensorFlow Lite FlatBuffer
-converter = tf.lite.TFLiteConverter.from_saved_model('path/to/tflite/model')
-tflite_model = converter.convert()
+# Path to the .tflite model
+tflite_model_path = 'model_quantized.tflite'
 
-# Step 2: Convert TensorFlow Lite FlatBuffer to TFLite Micro source file
-tflite_micro_model = tf.lite.Interpreter(model_content=tflite_model).convert()
+# Path to the output .cc file
+output_cc_path = 'D:\Programing\Projects\ESP32-TFLite-Knock-Detector\Train\model_data.cc'
 
-# Step 3: Save the TFLite Micro model to a file
-with open('converted_model.cc', 'wb') as f:
-    f.write(tflite_micro_model)
+# Convert .tflite to .cc using xxd
+subprocess.run(['xxd', '-i', tflite_model_path, output_cc_path])
