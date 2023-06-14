@@ -1,3 +1,4 @@
 Data Collection/Data/*
-Data Collection/False
+Data Collection/False/*
 ESP32/build
+rotated_data
