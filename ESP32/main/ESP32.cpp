@@ -7,10 +7,17 @@
 #include "esp_timer.h"
 #include "driver/gptimer.h"
 #include "esp_log.h"
-#include "tensorflow/lite/micro/micro_interpreter.h"
+#include "model_data.h"
+
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
-#include "tensorflow/lite/schema/schema_generated.h"
+#include "tensorflow/lite/micro/tflite_bridge/micro_error_reporter.h"
+
+#include "tensorflow/lite/micro/kernels/conv.h"
+#include "tensorflow/lite/micro/kernels/fully_connected.h"
+#include "tensorflow/lite/micro/kernels/global_average_pooling.h"
+#include "tensorflow/lite/micro/kernels/flatten.h"
+#include "tensorflow/lite/micro/kernels/dropout.h"
 
 #define I2C_MASTER_SCL_IO GPIO_NUM_22    // GPIO number for I2C master clock
 #define I2C_MASTER_SDA_IO GPIO_NUM_21    // GPIO number for I2C master data
@@ -32,6 +39,14 @@ uint16_t buffer_head = 0;
 
 #define TIMER_GROUP TIMER_GROUP_0
 #define TIMER_NUM TIMER_0
+
+// Define the model data, tensor arena, and their respective sizes
+extern const unsigned char model_data[];
+extern const int model_data_len;
+constexpr int kTensorArenaSize = 200000; // Define the size of the tensor arena buffer
+
+// Create a buffer for the interpreter tensor arena
+uint8_t IRAM_ATTR tensor_arena[kTensorArenaSize];
 
 void i2c_master_init() {
     i2c_config_t conf;
@@ -123,8 +138,21 @@ extern "C" void app_main() {
         }
     };
 
+    // Set up the model
+    const tflite::Model* model = tflite::GetModel(model_quantized_tflite);
+    tflite::MicroErrorReporter micro_error_reporter;
+    constexpr int kOpResolverSize = 2; // Define the number of supported operations
+    tflite::MicroMutableOpResolver<kOpResolverSize> micro_op_resolver;
+
+
+
+    micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_DEPTHWISE_CONV_2D, tflite::ops::micro::Register_DEPTHWISE_CONV_2D());
+
+    //tflite::MicroInterpreter interpreter(model, micro_error_reporter, tensor_arena, kTensorArenaSize);
+
     ESP_ERROR_CHECK(gptimer_set_alarm_action(gptimer, &alarm_config1));
     ESP_ERROR_CHECK(gptimer_start(gptimer));
+
 
     uint64_t microseconds1 = esp_timer_get_time();
 
