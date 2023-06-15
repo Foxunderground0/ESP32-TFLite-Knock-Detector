@@ -4,7 +4,7 @@ import math
 import matplotlib.pyplot as plt
 
 # Set the number of plots per page
-plots_per_page = 16
+plots_per_page = 48
 
 # Get a list of all the data files in the True directory
 true_files = glob.glob(r'Data Collection/Data/New Data/Trueeeeeeeeeee/*.txt')
