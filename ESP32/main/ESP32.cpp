@@ -13,12 +13,6 @@
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/tflite_bridge/micro_error_reporter.h"
 
-#include "tensorflow/lite/micro/kernels/conv.h"
-#include "tensorflow/lite/micro/kernels/fully_connected.h"
-#include "tensorflow/lite/micro/kernels/global_average_pooling.h"
-#include "tensorflow/lite/micro/kernels/flatten.h"
-#include "tensorflow/lite/micro/kernels/dropout.h"
-
 #define I2C_MASTER_SCL_IO GPIO_NUM_22    // GPIO number for I2C master clock
 #define I2C_MASTER_SDA_IO GPIO_NUM_21    // GPIO number for I2C master data
 #define I2C_MASTER_NUM I2C_NUM_0 // I2C port number for master dev
@@ -141,9 +135,23 @@ extern "C" void app_main() {
     // Set up the model
     const tflite::Model* model = tflite::GetModel(model_quantized_tflite);
     tflite::MicroErrorReporter micro_error_reporter;
-    constexpr int kOpResolverSize = 2; // Define the number of supported operations
+    constexpr int kOpResolverSize = 6; // Define the number of supported operations
     tflite::MicroMutableOpResolver<kOpResolverSize> micro_op_resolver;
 
+    micro_op_resolver.AddAveragePool2D();
+    micro_op_resolver.AddConv2D();
+    micro_op_resolver.AddFullyConnected();
+    micro_op_resolver.AddRelu();
+    micro_op_resolver.AddReshape(); //  https://stackoverflow.com/questions/62580548/is-the-keras-function-flatten-supported-by-tensorflow-lite
+
+
+
+    micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_CONV_2D, tflite::ops::micro::Register_CONV_2D());
+    micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_AVERAGE_POOL_2D, tflite::ops::micro::Register_AVERAGE_POOL_2D());
+    micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_FULLY_CONNECTED, tflite::ops::micro::Register_FULLY_CONNECTED());
+    micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_FLATTEN, tflite::ops::micro::Register_FLATTEN());
+    micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_RELU, tflite::ops::micro::Register_RELU());
+    micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_SIGMOID, tflite::ops::micro::Register_SIGMOID());
 
 
     micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_DEPTHWISE_CONV_2D, tflite::ops::micro::Register_DEPTHWISE_CONV_2D());
