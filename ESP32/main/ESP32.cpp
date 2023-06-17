@@ -37,10 +37,10 @@ uint16_t buffer_head = 0;
 // Define the model data, tensor arena, and their respective sizes
 extern const unsigned char model_data[];
 extern const int model_data_len;
-constexpr int kTensorArenaSize = 200000; // Define the size of the tensor arena buffer
+constexpr int kTensorArenaSize = 20000; // Define the size of the tensor arena buffer
 
 // Create a buffer for the interpreter tensor arena
-uint8_t IRAM_ATTR tensor_arena[kTensorArenaSize];
+uint8_t EXT_RAM_BSS_ATTR tensor_arena[kTensorArenaSize];
 
 void i2c_master_init() {
     i2c_config_t conf;
@@ -147,7 +147,7 @@ extern "C" void app_main() {
 
     //micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_DEPTHWISE_CONV_2D, tflite::ops::micro::Register_DEPTHWISE_CONV_2D());
 
-    tflite::MicroInterpreter interpreter(model, micro_error_reporter, tensor_arena, kTensorArenaSize);
+    tflite::MicroInterpreter interpreter(model, micro_op_resolver, tensor_arena, kTensorArenaSize);
 
     ESP_ERROR_CHECK(gptimer_set_alarm_action(gptimer, &alarm_config1));
     ESP_ERROR_CHECK(gptimer_start(gptimer));
