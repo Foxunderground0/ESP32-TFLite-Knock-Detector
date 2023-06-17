@@ -143,20 +143,11 @@ extern "C" void app_main() {
     micro_op_resolver.AddFullyConnected();
     micro_op_resolver.AddRelu();
     micro_op_resolver.AddReshape(); //  https://stackoverflow.com/questions/62580548/is-the-keras-function-flatten-supported-by-tensorflow-lite
+    micro_op_resolver.AddSoftmax();
 
+    //micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_DEPTHWISE_CONV_2D, tflite::ops::micro::Register_DEPTHWISE_CONV_2D());
 
-
-    micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_CONV_2D, tflite::ops::micro::Register_CONV_2D());
-    micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_AVERAGE_POOL_2D, tflite::ops::micro::Register_AVERAGE_POOL_2D());
-    micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_FULLY_CONNECTED, tflite::ops::micro::Register_FULLY_CONNECTED());
-    micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_FLATTEN, tflite::ops::micro::Register_FLATTEN());
-    micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_RELU, tflite::ops::micro::Register_RELU());
-    micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_SIGMOID, tflite::ops::micro::Register_SIGMOID());
-
-
-    micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_DEPTHWISE_CONV_2D, tflite::ops::micro::Register_DEPTHWISE_CONV_2D());
-
-    //tflite::MicroInterpreter interpreter(model, micro_error_reporter, tensor_arena, kTensorArenaSize);
+    tflite::MicroInterpreter interpreter(model, micro_error_reporter, tensor_arena, kTensorArenaSize);
 
     ESP_ERROR_CHECK(gptimer_set_alarm_action(gptimer, &alarm_config1));
     ESP_ERROR_CHECK(gptimer_start(gptimer));
