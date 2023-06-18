@@ -7,7 +7,7 @@
 #include "esp_timer.h"
 #include "driver/gptimer.h"
 #include "esp_log.h"
-#include "model_data.h"
+#include "model_quantized_tflite.h"
 
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
