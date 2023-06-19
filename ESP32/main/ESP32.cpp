@@ -12,7 +12,7 @@
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/tflite_bridge/micro_error_reporter.h"
 
-#include "model_quantized_tflite.h"
+#include "model_data.h"
 #include "i2c_functions.h"
 
 #define ONBOARD_LED  GPIO_NUM_0
@@ -33,8 +33,6 @@ uint16_t buffer_head = 0;
 #define TIMER_NUM TIMER_0
 
 // Define the model data, tensor arena, and their respective sizes
-extern const unsigned char model_data[];
-extern const int model_data_len;
 constexpr int kTensorArenaSize = 150000; // Define the size of the tensor arena buffer
 
 // Create a buffer for the interpreter tensor arena
@@ -89,7 +87,7 @@ extern "C" void app_main() {
     };
 
     // Set up the model
-    const tflite::Model* model = tflite::GetModel(model_quantized_tflite);
+    const tflite::Model* model = tflite::GetModel(model_data);
     tflite::MicroErrorReporter micro_error_reporter;
     constexpr int kOpResolverSize = 6; // Define the number of supported operations
     tflite::MicroMutableOpResolver<kOpResolverSize> micro_op_resolver;
