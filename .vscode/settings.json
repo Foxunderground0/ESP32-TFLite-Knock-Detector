@@ -13,7 +13,13 @@
         "core-matmap.h": "c",
         "esp_log.h": "c",
         "micro_interpreter.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "model_quantized_tflite.h": "c",
+        "micro_error_reporter.h": "c",
+        "esp_timer.h": "c"
     },
-    "C_Cpp.intelliSenseEngineFallback": "disabled"
+    "C_Cpp.intelliSenseEngineFallback": "disabled",
+    "editor.minimap.renderCharacters": false,
+    "editor.minimap.scale": 1,
+    "editor.minimap.size": "proportional"
 }
