@@ -1127,10 +1127,10 @@ extern "C" void app_main() {
 
     // Assuming input_data is your input data array with shape (1, 1000, 1, 1)
     for (int i = 0; i < 1000; i++) {
-        input_data[0][i][0][0] = a[i];
+        input_data[0][i][0][0] = 0.5;
     }
 
-    input_tensor->data.f = &input_data[0][0][0][0];
+    memcpy(input_tensor->data.f, input_data, sizeof(input_data));
 
 
     TfLiteStatus invoke_status = interpreter->Invoke();
@@ -1144,7 +1144,7 @@ extern "C" void app_main() {
     // Print the output values
     printf("Output 0: %f\n", output_data[0]);
     printf("Output 1: %f\n", output_data[1]);
-    printf("Output 2: %f\n", output_data[2]);
+
     /*
     int inputTensorIndex = 0;  // Adjust the index based on your model
     int outputTensorIndex = 0;  // Adjust the index based on your model
