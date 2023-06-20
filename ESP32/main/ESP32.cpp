@@ -1047,139 +1047,138 @@ tflite::MicroInterpreter* interpreter = nullptr;
 
 // Interrupt service routine (ISR)
 bool IRAM_ATTR timer_isr(gptimer_t* gptimer, const gptimer_alarm_event_data_t* event_data, void* arg) {
-    sample_ready = true;
-    gpio_set_level(ONBOARD_LED, led_state);
-    led_state = !led_state;
-    return true;
+	sample_ready = true;
+	gpio_set_level(ONBOARD_LED, led_state);
+	led_state = !led_state;
+	return true;
 }
 
 extern "C" void app_main() {
-    /*
-        i2c_master_init();
+	i2c_master_init();
+	MPU_write(0x6b, 0x00); //Set Power Registers
 
-        MPU_write(0x6b, 0x00); //Set Power Registers
+	gpio_pad_select_gpio(ONBOARD_LED);
+	gpio_set_direction(ONBOARD_LED, GPIO_MODE_OUTPUT);
+	gpio_set_level(ONBOARD_LED, led_state);
+	led_state = !led_state;
 
-        gpio_pad_select_gpio(ONBOARD_LED);
-        gpio_set_direction(ONBOARD_LED, GPIO_MODE_OUTPUT);
-        gpio_set_level(ONBOARD_LED, led_state);
-        led_state = !led_state;
+	ESP_LOGI(TAG, "Create timer handle");
 
-        ESP_LOGI(TAG, "Create timer handle");
-        gptimer_handle_t gptimer = NULL;
+	gptimer_handle_t gptimer = NULL;
 
-        gptimer_config_t timer_config = {
-        .clk_src = GPTIMER_CLK_SRC_DEFAULT,
-        .direction = GPTIMER_COUNT_UP,
-        .resolution_hz = 20000000, // 10MHz, 1 tick=1us
-        .flags = {0}
-        };
+	gptimer_config_t timer_config = {
+	.clk_src = GPTIMER_CLK_SRC_DEFAULT,
+	.direction = GPTIMER_COUNT_UP,
+	.resolution_hz = 20000000, // 10MHz, 1 tick=1us
+	.flags = {0}
+	};
 
-        ESP_ERROR_CHECK(gptimer_new_timer(&timer_config, &gptimer));
+	ESP_ERROR_CHECK(gptimer_new_timer(&timer_config, &gptimer));
 
-        gptimer_event_callbacks_t cbs = {
-            .on_alarm = timer_isr,
-        };
+	gptimer_event_callbacks_t cbs = {
+		.on_alarm = timer_isr,
+	};
 
-        ESP_ERROR_CHECK(gptimer_register_event_callbacks(gptimer, &cbs, NULL));
-        ESP_LOGI(TAG, "Enable timer");
-        ESP_ERROR_CHECK(gptimer_enable(gptimer));
-        ESP_LOGI(TAG, "Start timer, stop it at alarm event");
+	ESP_ERROR_CHECK(gptimer_register_event_callbacks(gptimer, &cbs, NULL));
+	ESP_LOGI(TAG, "Enable timer");
+	ESP_ERROR_CHECK(gptimer_enable(gptimer));
+	ESP_LOGI(TAG, "Start timer, stop it at alarm event");
 
-        gptimer_alarm_config_t alarm_config1 = {
-            .alarm_count = 11764,// 1700 times a second
-            .reload_count = 0,
-            .flags = {
-                .auto_reload_on_alarm = true
-            }
-        };
-    */
+	gptimer_alarm_config_t alarm_config1 = {
+		.alarm_count = 11764,// 1700 times a second
+		.reload_count = 0,
+		.flags = {
+			.auto_reload_on_alarm = true
+		}
+	};
+	*/
 
-    // Set up the model
-    const tflite::Model* model = tflite::GetModel(model_data);
-    tflite::MicroErrorReporter micro_error_reporter;
-    constexpr int kOpResolverSize = 7; // Define the number of supported operations
-    tflite::MicroMutableOpResolver<kOpResolverSize> micro_op_resolver;
+		// Set up the model
+		const tflite::Model * model = tflite::GetModel(model_data);
+	tflite::MicroErrorReporter micro_error_reporter;
+	constexpr int kOpResolverSize = 7; // Define the number of supported operations
+	tflite::MicroMutableOpResolver<kOpResolverSize> micro_op_resolver;
 
-    micro_op_resolver.AddAveragePool2D();
-    micro_op_resolver.AddConv2D();
-    micro_op_resolver.AddFullyConnected();
-    micro_op_resolver.AddRelu();
-    micro_op_resolver.AddReshape(); //  https://stackoverflow.com/questions/62580548/is-the-keras-function-flatten-supported-by-tensorflow-lite
-    micro_op_resolver.AddSoftmax();
-    micro_op_resolver.AddLogistic();
+	micro_op_resolver.AddAveragePool2D();
+	micro_op_resolver.AddConv2D();
+	micro_op_resolver.AddFullyConnected();
+	micro_op_resolver.AddRelu();
+	micro_op_resolver.AddReshape(); //  https://stackoverflow.com/questions/62580548/is-the-keras-function-flatten-supported-by-tensorflow-lite
+	micro_op_resolver.AddSoftmax();
+	micro_op_resolver.AddLogistic();
 
-    //micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_DEPTHWISE_CONV_2D, tflite::ops::micro::Register_DEPTHWISE_CONV_2D());
+	//micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_DEPTHWISE_CONV_2D, tflite::ops::micro::Register_DEPTHWISE_CONV_2D());
 
-    tflite::MicroInterpreter static_interpreter(model, micro_op_resolver, tensor_arena, kTensorArenaSize);
-    interpreter = &static_interpreter;
+	tflite::MicroInterpreter static_interpreter(model, micro_op_resolver, tensor_arena, kTensorArenaSize);
+	interpreter = &static_interpreter;
 
-    // Allocate memory from the tensor_arena for the model's tensors.
-    TfLiteStatus allocate_status = interpreter->AllocateTensors();
-    if (allocate_status != kTfLiteOk) {
-        printf("allocateTensors() failed");
-        return;
-    }
-    printf("Success \n");
+	// Allocate memory from the tensor_arena for the model's tensors.
+	TfLiteStatus allocate_status = interpreter->AllocateTensors();
+	if (allocate_status != kTfLiteOk) {
+		printf("allocateTensors() failed");
+		return;
+	}
+	printf("Success \n");
 
-    TfLiteTensor* input_tensor = interpreter->input_tensor(0);
-    TfLiteTensor* output_tensor = interpreter->output_tensor(0);
-
-
-    // Assuming input_data is your input data array with shape (1, 1000, 1, 1)
-    for (int i = 0; i < 1000; i++) {
-        input_data[0][i][0][0] = a[i];
-    }
-
-    memcpy(input_tensor->data.f, input_data, sizeof(input_data));
-
-    TfLiteStatus invoke_status = interpreter->Invoke();
-    if (invoke_status != kTfLiteOk) {
-        printf("Invoke Failed");
-    }
-
-    // Access the output tensor data
-    float* output_data = output_tensor->data.f;
-
-    // Print the output values
-    printf("Output 0: %f\n", output_data[0]);
-    printf("Output 1: %f\n", output_data[1]);
-
-    /*
-    int inputTensorIndex = 0;  // Adjust the index based on your model
-    int outputTensorIndex = 0;  // Adjust the index based on your model
-
-    const TfLiteTensor* inputTensor = interpreter->input_tensor(inputTensorIndex);
-    if (inputTensor->type != kTfLiteUInt8) {
-        // Handle error: Input tensor is not quantized to 8 bits
-    }
-
-    const float inputScale = inputTensor->params.scale;
-    const int inputZeroPoint = inputTensor->params.zero_point;
-
-    printf("Input Scale: %f, Zero Point: %d\n", inputScale, inputZeroPoint);
-    */
-
-    /*
-        ESP_ERROR_CHECK(gptimer_set_alarm_action(gptimer, &alarm_config1));
-        ESP_ERROR_CHECK(gptimer_start(gptimer));
+	TfLiteTensor* input_tensor = interpreter->input_tensor(0);
+	TfLiteTensor* output_tensor = interpreter->output_tensor(0);
 
 
-        uint64_t microseconds1 = esp_timer_get_time();
+	// Assuming input_data is your input data array with shape (1, 1000, 1, 1)
+	for (int i = 0; i < 1000; i++) {
+		input_data[0][i][0][0] = a[i];
+	}
 
-        while (buffer_head < 1700) {
-            if (sample_ready) {
-                uint8_t* data_pointer = MPU_read(0x3f, 2);
-                buffer[buffer_head] = (float)((uint16_t)(data_pointer[0] << 8) | (data_pointer[1]));
-                buffer_head++;
-                //printf("Timer triggred");
-                free(data_pointer);
-                sample_ready = false;
-            }
-        }
+	memcpy(input_tensor->data.f, input_data, sizeof(input_data));
 
-        uint64_t microseconds2 = esp_timer_get_time();
-        uint64_t diff = microseconds2 - microseconds1;
+	TfLiteStatus invoke_status = interpreter->Invoke();
+	if (invoke_status != kTfLiteOk) {
+		printf("Invoke Failed");
+	}
 
-        printf("Time in microseconds: %lld, head at: %d\n", diff, buffer_head);
-    */
+	// Access the output tensor data
+	float* output_data = output_tensor->data.f;
+
+	// Print the output values
+	printf("Output 0: %f\n", output_data[0]);
+	printf("Output 1: %f\n", output_data[1]);
+
+	/*
+	int inputTensorIndex = 0;  // Adjust the index based on your model
+	int outputTensorIndex = 0;  // Adjust the index based on your model
+
+	const TfLiteTensor* inputTensor = interpreter->input_tensor(inputTensorIndex);
+	if (inputTensor->type != kTfLiteUInt8) {
+		// Handle error: Input tensor is not quantized to 8 bits
+	}
+
+	const float inputScale = inputTensor->params.scale;
+	const int inputZeroPoint = inputTensor->params.zero_point;
+
+	printf("Input Scale: %f, Zero Point: %d\n", inputScale, inputZeroPoint);
+	*/
+
+	/*
+		ESP_ERROR_CHECK(gptimer_set_alarm_action(gptimer, &alarm_config1));
+		ESP_ERROR_CHECK(gptimer_start(gptimer));
+
+
+		uint64_t microseconds1 = esp_timer_get_time();
+
+		while (buffer_head < 1700) {
+			if (sample_ready) {
+				uint8_t* data_pointer = MPU_read(0x3f, 2);
+				buffer[buffer_head] = (float)((uint16_t)(data_pointer[0] << 8) | (data_pointer[1]));
+				buffer_head++;
+				//printf("Timer triggred");
+				free(data_pointer);
+				sample_ready = false;
+			}
+		}
+
+		uint64_t microseconds2 = esp_timer_get_time();
+		uint64_t diff = microseconds2 - microseconds1;
+
+		printf("Time in microseconds: %lld, head at: %d\n", diff, buffer_head);
+	*/
 };
