@@ -47,7 +47,8 @@ void data_collector(void* parameter) {
 			if (esp_timer_get_time() - last_sample > 588) {
 				last_sample = esp_timer_get_time();
 				uint8_t* data_pointer = MPU_read(0x3f, 2);
-				buffer[buffer_head] = (float)((uint16_t)(data_pointer[0] << 8) | (data_pointer[1])) / 2.0;
+				buffer[buffer_head] = (float)((uint16_t)(data_pointer[0] << 8) | (data_pointer[1]));
+				buffer[buffer_head] = (buffer[buffer_head] / 16384.0) / 2.0;
 				buffer_head++;
 
 				//printf("Timer triggred");
@@ -110,7 +111,7 @@ extern "C" void app_main() {
 
 	// Assuming input_data is your input data array with shape (1, 1000, 1, 1)
 	for (int i = 0; i < 1000; i++) {
-		input_data[0][i][0][0] = 0.5;
+		input_data[0][i][0][0] = -0.5;
 	}
 
 	memcpy(input_tensor->data.f, input_data, sizeof(input_data));
@@ -123,9 +124,6 @@ extern "C" void app_main() {
 	// Access the output tensor data
 	float* output_data = output_tensor->data.f;
 
-	// Print the output values
-	printf("Output 0: %f\n", output_data[0]);
-	printf("Output 1: %f\n", output_data[1]);
 
 
 	xTaskCreatePinnedToCore(data_collector, "data_collector", configMINIMAL_STACK_SIZE, NULL, 1, NULL, 1);
@@ -133,6 +131,7 @@ extern "C" void app_main() {
 	while (1) {
 		for (int i = 0; i < 1000; i++) {
 			input_data[0][i][0][0] = buffer[i];
+			//printf("%f \n", input_data[0][i][0][0]);
 		}
 		memcpy(input_tensor->data.f, input_data, sizeof(input_data));
 
@@ -145,8 +144,19 @@ extern "C" void app_main() {
 		float* output_data = output_tensor->data.f;
 
 		// Print the output values
-		printf("Output: %f", output_data[0]);
-		printf(" %f\n", output_data[1]);
+		// Get the size of the output tensor
+		int output_size = 1;
+		for (int i = 0; i < output_tensor->dims->size; i++) {
+			output_size *= output_tensor->dims->data[i];
+		}
+
+		// Print the output values
+		printf("Output: ");
+		for (int i = 0; i < output_size; i++) {
+			printf("%f ", output_data[i]);
+		}
+		printf("\n");
+
 		gpio_set_level(ONBOARD_LED, led_state);
 		led_state = !led_state;
 		vTaskDelay(1);
