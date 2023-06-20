@@ -77,7 +77,6 @@ extern "C" void app_main() {
 	gpio_set_level(ONBOARD_LED, led_state);
 	led_state = !led_state;
 
-
 	// Set up the model
 	const tflite::Model* model = tflite::GetModel(model_data);
 	tflite::MicroErrorReporter micro_error_reporter;
@@ -91,8 +90,6 @@ extern "C" void app_main() {
 	micro_op_resolver.AddReshape(); //  https://stackoverflow.com/questions/62580548/is-the-keras-function-flatten-supported-by-tensorflow-lite
 	micro_op_resolver.AddSoftmax();
 	micro_op_resolver.AddLogistic();
-
-	//micro_op_resolver.AddBuiltin(tflite::BuiltinOperator_DEPTHWISE_CONV_2D, tflite::ops::micro::Register_DEPTHWISE_CONV_2D());
 
 	tflite::MicroInterpreter static_interpreter(model, micro_op_resolver, tensor_arena, kTensorArenaSize);
 	interpreter = &static_interpreter;
@@ -123,8 +120,6 @@ extern "C" void app_main() {
 
 	// Access the output tensor data
 	float* output_data = output_tensor->data.f;
-
-
 
 	xTaskCreatePinnedToCore(data_collector, "data_collector", configMINIMAL_STACK_SIZE, NULL, 1, NULL, 1);
 
@@ -157,8 +152,10 @@ extern "C" void app_main() {
 		}
 		printf("\n");
 
-		gpio_set_level(ONBOARD_LED, led_state);
-		led_state = !led_state;
+		if (output_data[0] > 0.85) {
+			gpio_set_level(ONBOARD_LED, led_state);
+			led_state = !led_state;
+		}
 		vTaskDelay(1);
 	}
 };
