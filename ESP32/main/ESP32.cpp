@@ -7,6 +7,7 @@
 #include "esp_timer.h"
 #include "driver/gptimer.h"
 #include "esp_log.h"
+#include "esp_nn.h"
 
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
@@ -20,10 +21,7 @@
 bool led_state = false;
 bool sample_ready = false;
 
-static const char* TAG = "main_task";
-
 float input_data[1][1000][1][1];
-
 
 #define SAMPLES_COUNT 2000
 float buffer[SAMPLES_COUNT]; //Circular Buffer
@@ -47,8 +45,7 @@ void data_collector(void* parameter) {
 			if (esp_timer_get_time() - last_sample > 588) {
 				last_sample = esp_timer_get_time();
 				uint8_t* data_pointer = MPU_read(0x3f, 2);
-				buffer[buffer_head] = (float)((uint16_t)(data_pointer[0] << 8) | (data_pointer[1]));
-				buffer[buffer_head] = (buffer[buffer_head] / 16384.0) / 2.0;
+				buffer[buffer_head] = ((float)((uint16_t)(data_pointer[0] << 8) | (data_pointer[1])) / 32768.0);
 				buffer_head++;
 
 				//printf("Timer triggred");
@@ -124,9 +121,14 @@ extern "C" void app_main() {
 	xTaskCreatePinnedToCore(data_collector, "data_collector", configMINIMAL_STACK_SIZE, NULL, 1, NULL, 1);
 
 	while (1) {
-		for (int i = 0; i < 1000; i++) {
-			input_data[0][i][0][0] = buffer[i];
-			//printf("%f \n", input_data[0][i][0][0]);
+		uint16_t tail = buffer_head;
+		for (int i = 1000; i >= 0; i--) {
+			input_data[0][i][0][0] = buffer[tail];
+			tail--;
+			if (tail > 1800) {
+				tail = 1700;
+			}
+			//printf("%d ", tail);
 		}
 		memcpy(input_tensor->data.f, input_data, sizeof(input_data));
 
@@ -156,6 +158,7 @@ extern "C" void app_main() {
 			gpio_set_level(ONBOARD_LED, led_state);
 			led_state = !led_state;
 		}
+
 		vTaskDelay(1);
 	}
 };
