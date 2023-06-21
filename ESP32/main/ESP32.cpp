@@ -27,12 +27,8 @@ float input_data[1][1000][1][1];
 float buffer[SAMPLES_COUNT]; //Circular Buffer
 uint16_t buffer_head = 0;
 
-// Define the model data, tensor arena, and their respective sizes
 constexpr int kTensorArenaSize = 150000; // Define the size of the tensor arena buffer
-
-// Create a buffer for the interpreter tensor arena
 uint8_t EXT_RAM_BSS_ATTR tensor_arena[kTensorArenaSize];
-
 tflite::MicroInterpreter* interpreter = nullptr;
 
 
@@ -141,8 +137,9 @@ extern "C" IRAM_ATTR void app_main() {
 		}
 
 		if (output_data[0] > 0.85) {
-			gpio_set_level(ONBOARD_LED, led_state);
-			led_state = !led_state;
+			gpio_set_level(ONBOARD_LED, 1);
+		} else {
+			gpio_set_level(ONBOARD_LED, 0);
 		}
 
 		uint64_t microseconds2 = esp_timer_get_time();
