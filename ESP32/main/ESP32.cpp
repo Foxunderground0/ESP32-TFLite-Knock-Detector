@@ -36,7 +36,7 @@ uint8_t EXT_RAM_BSS_ATTR tensor_arena[kTensorArenaSize];
 tflite::MicroInterpreter* interpreter = nullptr;
 
 
-void data_collector(void* parameter) {
+IRAM_ATTR void data_collector(void* parameter) {
 	while (1) {
 		buffer_head = 0;
 		uint64_t microseconds1 = esp_timer_get_time();
@@ -65,13 +65,14 @@ void data_collector(void* parameter) {
 
 }
 
-extern "C" void app_main() {
+extern "C" IRAM_ATTR void app_main() {
 	i2c_master_init();
 	MPU_write(0x6b, 0x00); //Set Power Registers
 
 	gpio_pad_select_gpio(ONBOARD_LED);
 	gpio_set_direction(ONBOARD_LED, GPIO_MODE_OUTPUT);
 	gpio_set_level(ONBOARD_LED, led_state);
+
 	led_state = !led_state;
 
 	// Set up the model
@@ -102,26 +103,12 @@ extern "C" void app_main() {
 	TfLiteTensor* input_tensor = interpreter->input_tensor(0);
 	TfLiteTensor* output_tensor = interpreter->output_tensor(0);
 
-
-	// Assuming input_data is your input data array with shape (1, 1000, 1, 1)
-	for (int i = 0; i < 1000; i++) {
-		input_data[0][i][0][0] = -0.5;
-	}
-
-	memcpy(input_tensor->data.f, input_data, sizeof(input_data));
-
-	TfLiteStatus invoke_status = interpreter->Invoke();
-	if (invoke_status != kTfLiteOk) {
-		printf("Invoke Failed");
-	}
-
-	// Access the output tensor data
-	float* output_data = output_tensor->data.f;
-
 	xTaskCreatePinnedToCore(data_collector, "data_collector", configMINIMAL_STACK_SIZE, NULL, 1, NULL, 1);
 
 	while (1) {
+		uint64_t microseconds1 = esp_timer_get_time();
 		uint16_t tail = buffer_head;
+
 		for (int i = 1000; i >= 0; i--) {
 			input_data[0][i][0][0] = buffer[tail];
 			tail--;
@@ -152,13 +139,17 @@ extern "C" void app_main() {
 		for (int i = 0; i < output_size; i++) {
 			printf("%f ", output_data[i]);
 		}
-		printf("\n");
 
 		if (output_data[0] > 0.85) {
 			gpio_set_level(ONBOARD_LED, led_state);
 			led_state = !led_state;
 		}
 
+		uint64_t microseconds2 = esp_timer_get_time();
+		uint64_t diff = microseconds2 - microseconds1;
+
+		printf("Time in microseconds: %lld \n", diff);
 		vTaskDelay(1);
+
 	}
 };
