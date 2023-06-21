@@ -32,13 +32,11 @@ tflite::MicroInterpreter* interpreter = nullptr;
 
 #include <esp_heap_caps.h>
 
-/*
 // Function to print the current heap memory usage
 void printHeapUsage() {
-	size_t freeHeap = esp_heap_caps_get_free_size(MALLOC_CAP_8BIT);
-	printf("Free heap: %u bytes\n", freeHeap);
+	size_t freeHeap = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+	printf(" Free heap: %u bytes\n", freeHeap);
 }
-*/
 
 void data_collector(void* parameter) {
 	while (1) {
@@ -154,9 +152,9 @@ extern "C" IRAM_ATTR void app_main() {
 		uint64_t microseconds2 = esp_timer_get_time();
 		uint64_t diff = microseconds2 - microseconds1;
 
-		printf("Time in microseconds: %lld \n", diff);
+		printf("Time in microseconds: %lld ", diff);
 
-		//printHeapUsage();
+		printHeapUsage();
 
 		vTaskDelay(1);
 	}
