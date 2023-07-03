@@ -58,7 +58,7 @@ The ESP32 Knock Detector project aims to create a self-contained system using an
 
 ## Conclusion
 
-https://github.com/Foxunderground0/ESP32-TFLite-Knock-Detector/blob/main/Immages/Knock.mp4
+https://github.com/Foxunderground0/ESP32-TFLite-Knock-Detector/assets/54197021/2f5ac7a5-a42d-4f32-a259-dbd005960a2c
 
 The ESP32 Knock Detector project aims to create a reliable and efficient system for detecting knocks and triggering actions using an ESP32 WROVER microcontroller. By combining data collection, AI model training, model optimization, and microcontroller integration, the project enables the detection of knock events in real-time. The ultimate goal is to create a self-contained system that can be easily deployed and used for various applications, such as home automation or security systems.
 
