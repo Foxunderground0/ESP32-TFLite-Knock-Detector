@@ -24,20 +24,41 @@ The ESP32 Knock Detector project aims to create a self-contained system using an
 
     The trained AI model achieves an accuracy of 99.71% and a validation accuracy of 99.29%, demonstrating its ability to accurately classify knock events.
 
+    -   Model Architecture:
+
+        Input (1000, 1, 1) <br> |--- Conv2D (8, (100, 1), activation='relu') |--- AveragePooling2D ((2, 1), strides=(2, 1)) <br> |--- Conv2D (16, (15, 1), activation='relu') |--- AveragePooling2D ((2, 1)) <br> |--- Conv2D (16, (5, 1), activation='relu') |--- AveragePooling2D ((2, 1)) <br> |--- Conv2D (16, (3, 1), activation='relu') |--- AveragePooling2D ((2, 1)) <br> |--- Flatten |--- Dense (32, activation='relu') |--- Dense (2, activation='softmax')
+
+    -   Training graphs:
+
+        ![Training](Immages/Training.jpg)
+
 -   ### Model Pruning
 
-    To optimize the trained model and reduce its size, model pruning is applied. The TensorFlow Model Optimization library is used to prune the model by applying sparsity to the model's parameters. Pruning the model reduces its size while maintaining a high level of accuracy. The pruned model achieves a significant reduction in size, reducing the model file from 1.82 MB to 673 KB.
+    To optimize the trained model and reduce its size, model pruning is applied. The TensorFlow Model Optimization library is used to prune the model by applying sparsity to the model's parameters. Pruning the model reduces its size while maintaining a high level of accuracy. The pruned model achieves a significant reduction in size, reducing the model file from 431 KB to 157 KB.
 
 -   ### Model Quantization
 
-    To prepare the model for deployment on the ESP32 WROVER microcontroller, quantization is applied. Quantization converts the model to use 8-bit integer weights, reducing the memory requirements and improving inference speed on resource-constrained devices. The quantized model further reduces the model size to 182 KB while maintaining reasonable accuracy.
+    To prepare the model for deployment on the ESP32 WROVER microcontroller, quantization is applied. Quantization converts the model to use 16-bit integer weights and biases, reducing the memory requirements and improving inference speed on resource-constrained devices. The quantized model further reduces the model size to 39 KB while maintaining reasonable accuracy.
 
     ![Prediction](Immages/Prediction.gif)
 
 -   ### ESP32 Integration
-    The next step of the project involves integrating the pruned and quantized model with the ESP32 WROVER microcontroller. Once the microcontroller arrives, it will be programmed to load the model and process accelerometer data in real-time. When the model detects two consecutive knocks, it will trigger a specific action, such as turning on a relay to control a desk lamp or other devices.
+
+    In the ESP32 integration step of the project, I have successfully integrated the pruned and quantized model with the ESP32 WROVER microcontroller. To accomplish this, I have used the TFLite Micro ESP examples repository (https://github.com/espressif/tflite-micro-esp-examples) to load the TensorFlow Lite (TFLite) library into the ESP32 IDF.
+
+    To run the inference using the 16-bit quantized model, I have made some modifications to the code. Firstly, I have divided the tasks between two cores of the ESP32. The data collection script runs on core 0, which fills up a circular buffer with accelerometer data. Meanwhile, core 1 continuously runs the inference using the loaded model.
+
+    The circular buffer has a size of 1700 samples, and the data collection script reads data from the accelerometer at a rate of 588 samples per second. Once the buffer is filled, the inference process starts. The input data for the model is prepared by copying the last 1000 samples from the buffer to the input_data array.
+
+    After invoking the model using the TFLite interpreter, the output tensor data is accessed and printed. Additionally, a threshold of 0.85 is used to determine if a knock event is detected based on the output value. If the output value exceeds the threshold, the onboard LED (GPIO_NUM_0) is set to 1, indicating a knock event.
+
+    I have also added a function to print the current heap memory usage to monitor memory consumption during runtime.
+
+    With these modifications, the inference time has been significantly reduced. Before quantization, a single inference took 0.7 seconds, but with 16-bit quantization, it now takes only 0.4 seconds per inference.
 
 ## Conclusion
+
+https://github.com/Foxunderground0/ESP32-TFLite-Knock-Detector/blob/main/Immages/Knock.mp4
 
 The ESP32 Knock Detector project aims to create a reliable and efficient system for detecting knocks and triggering actions using an ESP32 WROVER microcontroller. By combining data collection, AI model training, model optimization, and microcontroller integration, the project enables the detection of knock events in real-time. The ultimate goal is to create a self-contained system that can be easily deployed and used for various applications, such as home automation or security systems.
 
